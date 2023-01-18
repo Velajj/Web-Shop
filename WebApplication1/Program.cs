@@ -1,4 +1,8 @@
 
+using Core.Abstractions.Repository;
+using Core.Abstractions.Services;
+using Services;
+
 namespace WebApplication1
 {
     public class Program
@@ -8,6 +12,10 @@ namespace WebApplication1
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+
+            builder.Services.AddSingleton<IProductRepository, IProductRepository>();
+            builder.Services.AddSingleton<IProductService, ProductServices>();
+
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
