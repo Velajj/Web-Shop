@@ -1,6 +1,7 @@
 
 using Core.Abstractions.Repository;
 using Core.Abstractions.Services;
+using DataBase.Repository;
 using Services;
 
 namespace WebApplication1
@@ -13,7 +14,7 @@ namespace WebApplication1
 
             // Add services to the container.
 
-            builder.Services.AddSingleton<IProductRepository, IProductRepository>();
+            builder.Services.AddSingleton<IProductRepository, ProductRepository>();
             builder.Services.AddSingleton<IProductService, ProductServices>();
 
 
