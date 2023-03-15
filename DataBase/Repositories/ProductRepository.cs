@@ -1,5 +1,5 @@
 ﻿using Core.Abstractions.Repositories;
-using Core.Domain;
+using Domain;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -9,7 +9,7 @@ namespace Database.Repositories
     {
         private const string fileName = "WebShopProducts.json";
 
-        private Dictionary<int, Product> _products; //= new Dictionary<int, Product>();
+        private Dictionary<int, Product> _products = null;
         private int _id = 0;
 
         public ProductRepository()
@@ -47,6 +47,7 @@ namespace Database.Repositories
                 return false;
             }
 
+            product.Id = productId;
             _products[productId] = product;
             SaveDatabase();
             return true;
@@ -99,6 +100,5 @@ namespace Database.Repositories
         {
             File.WriteAllText(fileName, JsonSerializer.Serialize(_products));
         }
-
     }
 }

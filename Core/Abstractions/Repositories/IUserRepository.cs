@@ -1,4 +1,4 @@
-﻿using Core.Domain;
+﻿using Domain;
 
 namespace Core.Abstractions.Repositories
 {
@@ -6,13 +6,11 @@ namespace Core.Abstractions.Repositories
     {
         List<User> GetAll();
         User GetById(int id);
-        User GetUserByUserName (string userName);
-        User GetUserByEmail(string email);
         bool Insert(User user);
+        bool Update(int userId, User user);
         bool Delete(int id);
-        bool Update(int userId, User user); 
-
-
+        User GetUserByUsername(string username);
+        User GetUserByEmail(string email);
 
     }
 }

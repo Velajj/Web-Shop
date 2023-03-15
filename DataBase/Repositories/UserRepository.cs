@@ -1,5 +1,5 @@
 ﻿using Core.Abstractions.Repositories;
-using Core.Domain;
+using Domain;
 using Core.Util;
 using System;
 using System.Collections.Generic;
@@ -12,9 +12,9 @@ namespace Database.Repositories
 {
     public class UserRepository : IUserRepository
     {
-
         private const string fileName = "WebShopUsers.json";
-        private Dictionary<int, User> _users; //= new Dictionary<int, User>();
+
+        private Dictionary<int, User> _users = null; 
         private int _id = 0;
 
         public UserRepository()
@@ -24,11 +24,12 @@ namespace Database.Repositories
 
         public bool Delete(int id)
         {
-            if(_users.Remove(id))
+            if (_users.Remove(id))
             {
                 SaveDatabase();
                 return true;
             }
+
             return false;
         }
 
@@ -40,54 +41,61 @@ namespace Database.Repositories
         public User GetUserByEmail(string email)
         {
             return _users
-             .Values
-            .SingleOrDefault(u =>
-             u.Email.Contains(email, StringComparison.OrdinalIgnoreCase));
-
-
+                .Values
+                .SingleOrDefault(u =>
+                    u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
         }
 
         public User GetById(int id)
         {
-            if(_users.ContainsKey(id))
+            if (_users.ContainsKey(id))
             {
                 return _users[id];
             }
+
             return null;
         }
 
-        public User GetUserByUserName(string userName)
+        public User GetUserByUsername(string username)
         {
             return _users
-       .Values
-       .SingleOrDefault(u =>
-           u.UserName.Contains(userName, StringComparison.OrdinalIgnoreCase));
+                .Values
+                .SingleOrDefault(u =>
+                    u.UserName.Equals(username, StringComparison.OrdinalIgnoreCase));
         }
 
         public bool Insert(User user)
         {
-            if (GetUserByUserName(user.UserName) != null
-                || GetUserByEmail(user.Email) != null) return false;
+            if (GetUserByUsername(user.UserName) != null
+                || GetUserByEmail(user.Email) != null)
+            {
+                return false;
+            }
+
             user.Id = ++_id;
-            _users.Add(_id, user);
+            _users.Add(user.Id, user);
             SaveDatabase();
             return true;
         }
 
         public bool Update(int userId, User user)
         {
-            if(!_users.ContainsKey(userId))
+            if (!_users.ContainsKey(userId))
             {
                 return false;
             }
 
-            var userByUserName = GetUserByUserName(user.UserName);
-
-            if (userByUserName != null && userByUserName.Id != userId) return false;
+            var userByUsername = GetUserByUsername(user.UserName);
+            if (userByUsername != null && userByUsername.Id != userId)
+            {
+                return false;
+            }
 
             var userByEmail = GetUserByEmail(user.Email);
-            
-            if (userByEmail != null && userByEmail.Id != user.Id) return false;
+            if (userByEmail != null && userByEmail.Id != userId)
+            {
+                return false;
+            }
 
             _users[userId] = user;
             SaveDatabase();
@@ -122,10 +130,12 @@ namespace Database.Repositories
                             FirstName = "Admin",
                             LastName = "Admin",
                             Password = Encryption.Encrypt("admin"),
-                            UserName = "admin"
+                            UserName = "admin",
+                            Roles = new List<UserRole> { UserRole.Administrator } 
                         }
                     }
                 };
+
                 SaveDatabase();
             }
 
@@ -133,13 +143,12 @@ namespace Database.Repositories
                 ? 0
                 : _users.Values.Select(p => p.Id).Max();
         }
+
         void SaveDatabase()
         {
             File.WriteAllText(fileName, JsonSerializer.Serialize(_users));
         }
 
-
-
     }
-
 }
+

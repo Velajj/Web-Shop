@@ -1,4 +1,4 @@
-﻿using Core.Domain;
+﻿using Domain;
 using Models.ViewModels;
 
 namespace Core.Abstractions.Services
@@ -7,7 +7,7 @@ namespace Core.Abstractions.Services
     {
         ProductViewModel? GetById(int productId);
         List<ProductViewModel?> GetAllProducts();
-        bool Insert(ProductViewModel product);
+        void Insert(ProductViewModel product);
         bool Update(int productId, ProductViewModel product);
         bool Delete(int productId);
         List<ProductViewModel?> SearchByKeyWord(string keyoword);

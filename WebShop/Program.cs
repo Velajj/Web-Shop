@@ -2,6 +2,9 @@
 using Core.Abstractions.Repositories;
 using Core.Abstractions.Services;
 using Database.Repositories;
+using FluentValidation;
+using Models.Validators;
+using Models.ViewModels;
 using Services;
 
 namespace WebShop
@@ -12,10 +15,10 @@ namespace WebShop
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession();
+
+            // Add services to the container.
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -24,12 +27,11 @@ namespace WebShop
 
             builder.Services.AddTransient<IProductsService, ProductsService>();
             builder.Services.AddSingleton<IProductRepository, ProductRepository>();
-
-            builder.Services.AddTransient<IUsersService, UserService>();
+            builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddSingleton<IUserRepository, UserRepository>();
 
 
-
+            builder.Services.AddSingleton<IValidator<ProductViewModel>, ProductViewModelValidator>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

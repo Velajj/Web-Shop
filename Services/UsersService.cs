@@ -1,6 +1,6 @@
 ﻿using Core.Abstractions.Repositories;
 using Core.Abstractions.Services;
-using Core.Domain;
+using Domain;
 using Core.Util;
 using Models.ViewModels;
 using System;
@@ -10,14 +10,14 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+
 namespace Services
 {
-    public class UserService : IUsersService
+    public class UsersService : IUsersService
     {
-
         private readonly IUserRepository _repository;
 
-        public UserService(IUserRepository repository)
+        public UsersService(IUserRepository repository)
         {
             _repository = repository;
         }
@@ -29,7 +29,8 @@ namespace Services
 
         public List<UserViewModel> GetAll()
         {
-            return _repository.GetAll()
+            return _repository
+                .GetAll()
                 .Select<User?, UserViewModel?>(u => MapToViewModel(u))
                 .ToList();
         }
@@ -44,14 +45,13 @@ namespace Services
             return MapToViewModel(_repository.GetUserByEmail(email));
         }
 
-        public UserViewModel GetUserByUserName(string userName)
+        public UserViewModel GetUserByUsername(string username)
         {
-           return  MapToViewModel(_repository.GetUserByUserName(userName));
+            return MapToViewModel(_repository.GetUserByUsername(username));
         }
 
         public bool Insert(UserViewModel user)
         {
-
             return _repository.Insert(MapFromViewModel(user));
         }
 
@@ -59,7 +59,6 @@ namespace Services
         {
             return _repository.Update(userId, MapFromViewModel(user));
         }
-
 
         private UserViewModel? MapToViewModel(User? u)
         {
@@ -72,8 +71,9 @@ namespace Services
                 FirstName = u.FirstName,
                 LastName = u.LastName,
                 Email = u.Email,
-                UserName = u.UserName,
                 Password = String.Empty,
+                UserName = u.UserName,
+                Roles= u.Roles,
             };
         }
 
@@ -81,51 +81,44 @@ namespace Services
         {
             if (u == null)
                 return null;
+
             return new User
             {
                 Id = u.Id,
                 FirstName = u.FirstName,
                 LastName = u.LastName,
                 Email = u.Email,
-                UserName = Encryption.Encrypt(u.Password),
-                Password = u.Password,
+                Password = Encryption.Encrypt(u.Password),
+                UserName = u.UserName,
+                Roles = u.Roles,
             };
-
         }
 
         /// <summary>
-        /// Login method to check username/email and password
+        /// Login method to check usename/email and password
         /// </summary>
-        /// <param name="userNameOrEmail">username or email</param>
+        /// <param name="userNameOrEMail">username or email</param>
         /// <param name="password">plain text password</param>
         /// <returns></returns>
-
-        public UserViewModel? Login(string userNameOrEmail, string password)
+        public UserViewModel? Login(string userNameOrEMail, string password)
         {
-            bool isEmail = Regex.IsMatch(userNameOrEmail, @"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z", RegexOptions.IgnoreCase);
-            
-            // check email or username
-           /* if(isEmail)
-                user = _repository.GetUserByEmail(userNameOrEmail);
-            else
-                user = _repository.GetUserByUserName(userNameOrEmail);*/
+            bool isEmail = Regex.IsMatch(userNameOrEMail, @"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z", RegexOptions.IgnoreCase);
 
-            User user = isEmail ?
-                _repository.GetUserByEmail(userNameOrEmail) :
-                _repository.GetUserByUserName(userNameOrEmail);
+            // check email or usename
+            User user = isEmail ? 
+                _repository.GetUserByEmail(userNameOrEMail) : 
+                _repository.GetUserByUsername(userNameOrEMail);
 
             // not valid user
-            if (user == null)
+            if (user == null) 
                 return null;
 
-            //check password
-            if (Encryption.Encrypt(password) != user.Password) 
+            // check password
+            if(Encryption.Encrypt(password) != user.Password)
                 return null;
-            
-            //convert to viewmodel
+
+            // convert to viewmodel
             return MapToViewModel(user);
-
-            
         }
     }
 }
