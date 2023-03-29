@@ -2,6 +2,7 @@
 using Domain;
 using Microsoft.AspNetCore.Mvc;
 using Models.ViewModels;
+using Services.Exceptions;
 
 namespace WebShop.Controllers
 {
@@ -18,7 +19,7 @@ namespace WebShop.Controllers
         }
 
         [HttpGet("products")]
-        public List<ProductViewModel?> GetAllProducts()
+        public List<ProductViewModel> GetAllProducts()
         {
             return _productService.GetAllProducts();
         }
@@ -28,30 +29,22 @@ namespace WebShop.Controllers
         {
             if (!CurrentUser.Roles.Contains(UserRole.Administrator))
             {
-                throw new InvalidOperationException();
+                throw new NotAuthorizedException();
             }
 
-            try
-            {
-                _productService.Insert(productModel);
-            }
-            catch (Exception ex)
-            {
-
-                return BadRequest(ex.Message);
-            }
-
+            _productService.Insert(productModel);
+ 
             return Ok();
         }
 
         [HttpGet("products/search/{keyword}")]
-        public List<ProductViewModel?> SearchByKeyword(string keyword)
+        public List<ProductViewModel> SearchByKeyword(string keyword)
         {
             return _productService.SearchByKeyWord(keyword);
         }
 
         [HttpGet("products/{productId}")]
-        public ProductViewModel? GetById(int productId)
+        public ProductViewModel GetById(int productId)
         {
             return _productService.GetById(productId);
         }
@@ -61,7 +54,7 @@ namespace WebShop.Controllers
         {
             if (!CurrentUser.Roles.Contains(UserRole.Administrator))
             {
-                throw new InvalidOperationException();
+                throw new NotAuthorizedException();
             }
 
             return _productService.Delete(productId);
@@ -72,7 +65,7 @@ namespace WebShop.Controllers
         {
             if (!CurrentUser.Roles.Contains(UserRole.Administrator))
             {
-                throw new InvalidOperationException();
+                throw new NotAuthorizedException();
             }
 
             return _productService.Update(productId, productViewModel);

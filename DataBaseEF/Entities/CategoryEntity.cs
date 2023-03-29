@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WebShop.DataBaseEF.Entities;
+namespace WebShop.DatabaseEF.Entities;
 
 public partial class CategoryEntity
 {

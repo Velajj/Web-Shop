@@ -4,59 +4,51 @@ using Domain;
 using FluentValidation;
 using Models.Validators;
 using Models.ViewModels;
+using Services.Exceptions;
 
 namespace Services
 {
     public class ProductsService : IProductsService
     {
         private readonly IProductRepository _repository;
+        private readonly ICategoryRepository _categoryRepository;
         private readonly IValidator<ProductViewModel> _viewModelValidator;
 
         public ProductsService(
             IProductRepository productRepository,
+            ICategoryRepository categoryRepository,
             IValidator<ProductViewModel> viewModelValidator)
         {
             _repository = productRepository;
+            _categoryRepository = categoryRepository;
             _viewModelValidator = viewModelValidator;
         }
 
-        public ProductViewModel? GetById(int productId)
+        public ProductViewModel GetById(long productId)
         {
-            return MapToViewModel(_repository.GetById(productId));
+            var foundProduct = MapToViewModel(_repository.GetById(productId));
+
+            if (foundProduct == null)
+                throw new ResourceNotFoundException($"Product with id: {productId} was not found.");
+
+            return foundProduct;
+
         }
 
-        public List<ProductViewModel?> GetAllProducts()
+        public List<ProductViewModel> GetAllProducts()
         {
             return _repository
                 .GetAllProducts()
-                .Select<Product?, ProductViewModel?>(p => MapToViewModel(p))
+                .Select<Product, ProductViewModel>(p => MapToViewModel(p))
                 .Where(p => p != null)
                 .ToList();
         }
 
         public void Insert(ProductViewModel productViewModel)
-        {
+        { 
+            _viewModelValidator.ValidateAndThrow(productViewModel);
 
-
-            try
-            {
-                _viewModelValidator.ValidateAndThrow(productViewModel);
-
-            }
-            catch (ValidationException ex)
-            {
-                var errorMessages = ex.Errors
-                    .Select(error => error.ErrorMessage);
-
-                var messagesJoined = string.Join('\n', errorMessages);
-
-                throw new Exception(messagesJoined);
-            }
-
-            //var validationResult = validator.Validate(productViewModel);
-            
-            
-            Product? product = MapFromViewModel(productViewModel);
+            Product product = MapFromViewModel(productViewModel);
 
             if (product == null)
                 throw new ArgumentNullException(nameof(productViewModel));
@@ -64,9 +56,9 @@ namespace Services
             _repository.Insert(product);
         }
 
-        public bool Update(int productId, ProductViewModel productViewModel)
+        public bool Update(long productId, ProductViewModel productViewModel)
         {
-            Product? product = MapFromViewModel(productViewModel);
+            Product product = MapFromViewModel(productViewModel);
 
             if (product == null)
                 throw new ArgumentNullException(nameof(productViewModel));
@@ -74,21 +66,25 @@ namespace Services
             return _repository.Update(productId, product);
         }
 
-        public bool Delete(int productId)
+        public bool Delete(long productId)
         {
-            return _repository.Delete(productId);
+            bool isDeleted = _repository.Delete(productId);
+            if (!isDeleted)
+                throw new ResourceNotFoundException($"Product with id: {productId} was not found");
+
+            return true;
         }
 
-        public List<ProductViewModel?> SearchByKeyWord(string keyword)
+        public List<ProductViewModel> SearchByKeyWord(string keyword)
         {
             return _repository
                 .SearchByKeyWord(keyword)
-                .Select<Product?, ProductViewModel?>(p => MapToViewModel(p))
+                .Select<Product, ProductViewModel>(p => MapToViewModel(p))
                 .Where(p => p != null)
                 .ToList();
         }
 
-        private ProductViewModel? MapToViewModel(Product? p)
+        private ProductViewModel MapToViewModel(Product p)
         {
             if (p == null)
                 return null;
@@ -98,12 +94,12 @@ namespace Services
                 Id = p.Id,
                 Name = p.Name,
                 Price = p.Price,
-                Category = p.Category,
+                Category = _categoryRepository.GetById(p.CategoryId),
                 Description = p.Description,
             };
         }
 
-        private Product? MapFromViewModel(ProductViewModel? p)
+        private Product MapFromViewModel(ProductViewModel p)
         {
             if (p == null)
                 return null;
@@ -113,7 +109,7 @@ namespace Services
                 Id = p.Id,
                 Name = p.Name,
                 Price = p.Price,
-                Category = p.Category,
+                CategoryId = p.Category.Id,
                 Description = p.Description,
             };
         }

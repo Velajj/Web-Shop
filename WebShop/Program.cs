@@ -1,11 +1,15 @@
 
 using Core.Abstractions.Repositories;
 using Core.Abstractions.Services;
-using Database.Repositories;
+using DatabaseEF.Repositories;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Models.Validators;
 using Models.ViewModels;
 using Services;
+using WebShop.DatabaseEF.Entities;
+using WebShop.MiddleWare;
 
 namespace WebShop
 {
@@ -25,13 +29,20 @@ namespace WebShop
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddDbContextPool<WebshopContext>(x => 
+            {
+                x.UseSqlServer("Server=.\\SQLExpress;Database=WebShop;Trusted_Connection=True;TrustServerCertificate=True");
+            });
+
             builder.Services.AddTransient<IProductsService, ProductsService>();
-            builder.Services.AddSingleton<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
             builder.Services.AddTransient<IUsersService, UsersService>();
             builder.Services.AddSingleton<IUserRepository, UserRepository>();
 
-
             builder.Services.AddSingleton<IValidator<ProductViewModel>, ProductViewModelValidator>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -40,6 +51,8 @@ namespace WebShop
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             app.UseAuthorization();
 

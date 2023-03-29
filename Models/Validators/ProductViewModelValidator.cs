@@ -3,7 +3,8 @@ using Models.ViewModels;
 
 namespace Models.Validators
 {
-    public class ProductViewModelValidator : AbstractValidator<ProductViewModel>
+    public class ProductViewModelValidator 
+        : AbstractValidator<ProductViewModel>
     {
         public ProductViewModelValidator()
         {
@@ -20,11 +21,6 @@ namespace Models.Validators
             RuleFor(product => product.Description)
                 .Matches("^(\\w|\\s)*$")
                 .MaximumLength(1024);
-
-
         }
-
-      
-
     }
 }
