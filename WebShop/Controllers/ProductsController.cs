@@ -21,7 +21,15 @@ namespace WebShop.Controllers
         [HttpGet("products")]
         public List<ProductViewModel> GetAllProducts()
         {
-            return _productService.GetAllProducts();
+            try
+            {
+                var products = _productService.GetAllProducts();
+                return products;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         [HttpPost("products")]
